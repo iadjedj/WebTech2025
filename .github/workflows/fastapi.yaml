@@ -1,0 +1,34 @@
+name: FastAPI CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python in a virtual env
+      run: |
+        if [[ `uname` != "Darwin" ]]; then sudo apt-get -y install python3-venv; fi
+        python3 -m venv .venv
+
+    - name: Install dependencies
+      run: |
+        source .venv/bin/activate
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Test
+      run: |
+        source .venv/bin/activate
+        pytest
+
+    - name: Run !
+      run: |
+        source .venv/bin/activate
+        mkdir -p logs
+        killall fastapi || true
+        RUNNER_TRACKING_ID="" && (nohup fastapi run >> log.txt &)
