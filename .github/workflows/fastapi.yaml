@@ -25,6 +25,7 @@ jobs:
         pytest
 
     - name: Run !
+      if: success() && github.ref == 'refs/heads/master'
       run: |
         source .venv/bin/activate
         mkdir -p logs
