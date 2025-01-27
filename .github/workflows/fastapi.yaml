@@ -1,8 +1,6 @@
 name: FastAPI CI/CD
 
-on:
-  push:
-    branches: [ main ]
+on: push
 
 jobs:
   build:
@@ -27,6 +25,7 @@ jobs:
         pytest
 
     - name: Run !
+      if: success() && github.ref == 'refs/heads/master'
       run: |
         source .venv/bin/activate
         mkdir -p logs

@@ -5,7 +5,7 @@ app = FastAPI()
 
 @app.get("/")
 def index(request: Request):
-	return {"hello": "world"}
+	return {"hello": "world!!"}
 
 @app.get("/demo_error")
 def error():
