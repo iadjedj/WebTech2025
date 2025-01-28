@@ -23,6 +23,7 @@ jobs:
       run: |
         source .venv/bin/activate
         python manage.py makemigrations
+        python manage.py migrate
 
     - name: Collect Static Files
       run: |
