@@ -5,3 +5,4 @@ __pycache__/
 *$py.class
 .venv
 .coverage
+server.log
