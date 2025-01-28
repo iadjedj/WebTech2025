@@ -25,6 +25,14 @@ jobs:
         python manage.py makemigrations
         python manage.py migrate
 
+    - name: Create Superuser  # ✅ Corrigé l'indentation ici
+      run: |
+        source .venv/bin/activate
+        export DJANGO_SUPERUSER_USERNAME=admin
+        export DJANGO_SUPERUSER_EMAIL=admin@example.com
+        export DJANGO_SUPERUSER_PASSWORD=adminpass
+        python manage.py createsuperuser --noinput || true
+
     - name: Collect Static Files
       run: |
         source .venv/bin/activate
