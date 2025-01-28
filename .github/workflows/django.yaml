@@ -34,9 +34,13 @@ jobs:
         source .venv/bin/activate
         python manage.py test commandes.tests
 
-    - name: Run Server
+    - name: Restart Daphne Server
       if: success() && github.ref == 'refs/heads/main'
       run: |
         source .venv/bin/activate
-        killall python || true  # Arrête tout serveur Python en cours
+        echo "🚀 Arrêt de Daphne en cours..."
+        killall daphne || true  # Tuer Daphne si en cours d'exécution
+        sleep 2  # Petite pause pour éviter les conflits de port
+
+        echo "✅ Redémarrage de Daphne..."
         RUNNER_TRACKING_ID="" && (nohup daphne -b 0.0.0.0 -p 8000 fablab_api.asgi:application >> log.txt &)
