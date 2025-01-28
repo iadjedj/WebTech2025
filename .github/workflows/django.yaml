@@ -1,4 +1,4 @@
-name: FastAPI CI/CD
+name: Django CI/CD
 
 on: push
 
@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python in a virtual env
+    - name: Set up Python in a virtual environment
       run: |
         if [[ `uname` != "Darwin" ]]; then sudo apt-get -y install python3-venv; fi
         python3 -m venv .venv
@@ -19,15 +19,25 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Test
+    - name: Apply Migrations
       run: |
         source .venv/bin/activate
-        pytest
+        python manage.py migrate
 
-    - name: Run !
+    - name: Collect Static Files
+      run: |
+        source .venv/bin/activate
+        python manage.py collectstatic --noinput
+
+    - name: Run Tests
+      run: |
+        source .venv/bin/activate
+        python manage.py test
+
+    - name: Run Server
       if: success() && github.ref == 'refs/heads/main'
       run: |
         source .venv/bin/activate
-        mkdir -p logs
-        killall fastapi || true
-        RUNNER_TRACKING_ID="" && (nohup fastapi run >> log.txt &)
+        killall python || true  # Arrête tout serveur Python en cours
+        RUNNER_TRACKING_ID="" && (nohup daphne -b 0.0.0.0 -p 8000 fablab_api.asgi:application >> log.txt &)
+
