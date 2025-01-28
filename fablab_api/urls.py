@@ -1,9 +1,10 @@
 
-
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from commandes.views import ProduitViewSet, SandwichViewSet, CommandeViewSet, stock_actuel  # Assure-toi que l'import est correct
+from django.conf import settings
+from django.conf.urls.static import static
 
 # Création du routeur pour les ViewSets
 router = DefaultRouter()
@@ -17,3 +18,6 @@ urlpatterns = [
     path('api/', include(router.urls)),  # Inclut toutes les routes API
     path('api/stock/', stock_actuel, name='stock'),  # Ajout de l'endpoint pour le stock
 ]
+# Ajoute cette ligne pour servir les fichiers statiques en mode DEBUG
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
