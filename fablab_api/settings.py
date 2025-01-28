@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'rest_framework', 
     'commandes', 
     'channels',
+    'corsheaders',  # 🔹 Ajout de corsheaders pour gérer les CORS
 ]
 
 MIDDLEWARE = [
@@ -50,8 +51,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # 🔹 Ajout de corsheaders ici
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True  # 🔹 Autorise toutes les origines
 
 ROOT_URLCONF = 'fablab_api.urls'
 
