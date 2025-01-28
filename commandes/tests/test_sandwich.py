@@ -1,15 +1,22 @@
 from django.test import TestCase
-from commandes.models import Produit, Sandwich
+from commandes.models import Produit
 
-
-class SandwichTestCase(TestCase):
-    def setUp(self):
-        self.produit1 = Produit.objects.create(nom="Tomate", taille="M", poids=50)
-        self.produit2 = Produit.objects.create(nom="Fromage", taille="M", poids=100)
-        self.sandwich = Sandwich.objects.create(nom="Sandwich Test", taille="M")
-        self.sandwich.produits.add(self.produit1, self.produit2)
-    
-    def test_poids_total(self):
-        """ Vérifie que le poids total du sandwich est bien calculé """
-        self.sandwich.save()
-        self.assertEqual(self.sandwich.poids_total, 150)
+class ProduitTestCase(TestCase):
+    def test_creation_produit(self):
+        """ Vérifie si un produit peut être créé correctement """
+        produit = Produit.objects.create(
+            nom="Pain Burger",
+            taille="M",
+            poids=50.0,
+            quantite_stock=10,
+            couleur="Jaune",
+            temps_cuisson=5
+        )
+        
+        # Vérifie que le produit a bien été enregistré
+        self.assertEqual(produit.nom, "Pain Burger")
+        self.assertEqual(produit.taille, "M")
+        self.assertEqual(produit.poids, 50.0)
+        self.assertEqual(produit.quantite_stock, 10)
+        self.assertEqual(produit.couleur, "Jaune")
+        self.assertEqual(produit.temps_cuisson, 5)

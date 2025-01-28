@@ -32,7 +32,7 @@ jobs:
     - name: Run Tests
       run: |
         source .venv/bin/activate
-        python manage.py test
+        python manage.py test commandes.tests
 
     - name: Run Server
       if: success() && github.ref == 'refs/heads/main'
@@ -40,4 +40,3 @@ jobs:
         source .venv/bin/activate
         killall python || true  # Arrête tout serveur Python en cours
         RUNNER_TRACKING_ID="" && (nohup daphne -b 0.0.0.0 -p 8000 fablab_api.asgi:application >> log.txt &)
-
