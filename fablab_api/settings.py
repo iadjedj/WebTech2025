@@ -35,15 +35,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'whitenoise.runserver_nostatic',  # 🔹 Ajout de whitenoise pour gérer les fichiers statiques
     'rest_framework', 
     'commandes', 
     'channels',
-    'whitenoise.runserver_nostatic',  # Ajout de Whitenoise
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise pour servir les fichiers statiques
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 🔹 Ajout de whitenoise ici
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'fablab_api.urls'
 
