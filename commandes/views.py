@@ -87,10 +87,6 @@ class TemperatureViewSet(viewsets.ModelViewSet):
 
 
 
-class ScanViewSet(viewsets.ModelViewSet):
-    queryset = Scan.objects.all()
-    serializer_class = ScanSerializer
-
 @csrf_exempt
 def verifier_poids_commande(request):
     """ Vérifie si le poids mesuré correspond à la commande et met à jour son statut """
