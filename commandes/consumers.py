@@ -1,9 +1,12 @@
-import json
+import os
 import django
+import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 
+# 🔹 Initialisation correcte de Django avant d'importer les modèles
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fablab_api.settings")
 django.setup()
 
 from .models import Produit
