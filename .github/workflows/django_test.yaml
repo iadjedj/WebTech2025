@@ -7,7 +7,8 @@ jobs:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v3
-      path: './test'
+      with:
+        path: './test'
 
     - name: Set up Python in a virtual environment
       run: |
