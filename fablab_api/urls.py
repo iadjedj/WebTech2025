@@ -9,7 +9,8 @@ from commandes.views import (
     stock_actuel,
     TemperatureViewSet,
     verifier_poids_commande,
-    ScanViewSet # 🔹 Ajout de l'import pour la vérification du poids
+    AddstockViewSet  # 🔹 Ajout de l'import pour la vérification du poids
+
 )
 
 
@@ -22,14 +23,14 @@ router.register(r'produits', ProduitViewSet)
 router.register(r'sandwiches', SandwichViewSet)
 router.register(r'commandes', CommandeViewSet)
 router.register(r'temperature', TemperatureViewSet)  # Ajout de la route pour la température
-router.register(r'scans', ScanViewSet)  # Ajout de la route pour Scan
+router.register(r'addstock', AddstockViewSet)
 
-# Définition des URL du projet
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),  # Inclut toutes les routes API
     path('api/stock/', stock_actuel, name='stock'),  # Ajout de l'endpoint pour le stock
-    path('api/verification-poids/', verifier_poids_commande, name="verification-poids"),  # 🔹 Nouveau endpoint pour la vérification du poids
+    path('api/verification-poids/', verifier_poids_commande, name="verification-poids"),
+
 ]
 
 # Ajoute cette ligne pour servir les fichiers statiques en mode DEBUG

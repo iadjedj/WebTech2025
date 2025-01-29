@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Produit, Sandwich, Commande, Temperature,Scan
+from .models import Produit, Sandwich, Commande, Addstock, Temperature
 
 class ProduitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,7 +25,7 @@ class TemperatureSerializer(serializers.ModelSerializer):
         model = Temperature
         fields = ['date_heure', 'temperature', 'humidite']  # Utilise 'date_heure' au lieu de 'created_at'
 
-class ScanSerializer(serializers.ModelSerializer):
+class AddstockSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Scan
-        fields = '__all__'  # Ou ['id', 'code', 'poids'] si tu veux être plus précis
+        model = Addstock
+        fields = ['id', 'nom', 'taille', 'quantite_stock']

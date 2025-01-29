@@ -131,9 +131,10 @@ class Temperature(models.Model):
     def __str__(self):
         return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
 
-class Scan(models.Model):
-    code = models.CharField(max_length=255, unique=True)
-    poids = models.DecimalField(max_digits=10, decimal_places=2)
+class Addstock(models.Model):
+    nom = models.CharField(max_length=100)
+    taille = models.CharField(max_length=10)
+    quantite_stock = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"Scan {self.code} - {self.poids} kg"
+        return f"Stock ajouté le {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Quantité: {self.quantite}"
