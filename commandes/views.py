@@ -6,10 +6,12 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import JsonResponse
-from .models import Produit, Sandwich, Commande
-from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer
-from .models import Temperature
+from django.http import JsonRespons
+from .models import Produit, Sandwich, Commande, Temperature, Scan
+from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer, ScanSerializer
+
+
+
 class ProduitViewSet(viewsets.ModelViewSet):
     """ API pour gérer les produits """
     queryset = Produit.objects.all()
@@ -85,6 +87,12 @@ class TemperatureViewSet(viewsets.ModelViewSet):
     queryset = Temperature.objects.all()
     serializer_class = TemperatureSerializer
 
+
+
+class ScanViewSet(viewsets.ModelViewSet):
+    queryset = Scan.objects.all()
+    serializer_class = ScanSerializer
+
 @csrf_exempt
 def verifier_poids_commande(request):
     """ Vérifie si le poids mesuré correspond à la commande et met à jour son statut """
@@ -123,3 +131,4 @@ def verifier_poids_commande(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
