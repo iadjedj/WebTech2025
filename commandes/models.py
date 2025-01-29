@@ -4,9 +4,10 @@ from channels.layers import get_channel_layer
 from django.db.models.signals import m2m_changed, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+
 class Produit(models.Model):
     """ Modèle représentant un produit individuel """
-    
+
     TAILLE_CHOICES = [
         ("S", "Petit"),
         ("M", "Moyen"),
@@ -58,20 +59,18 @@ class Sandwich(models.Model):
     nom = models.CharField(max_length=100, unique=True)
     taille = models.CharField(max_length=10, choices=TAILLE_CHOICES)
     produits = models.ManyToManyField(Produit)  # Relation ManyToMany
-    poids_total = models.FloatField(default=0)  # ✅ Poids total du sandwich
-
-    def save(self, *args, **kwargs):
-        """ 🔹 Mise à jour automatique du poids total """
-        super().save(*args, **kwargs)  # 🔹 Sauvegarde l'objet pour générer l'ID
-
-        if self.produits.exists():  # Vérifie si des produits sont associés
-            self.poids_total = sum(produit.poids for produit in self.produits.all())  # ✅ Somme des poids des produits
-            super().save(update_fields=["poids_total"])  # 🔹 Sauvegarde finale après mise à jour
+    poids_total = models.FloatField(default=0)  # ✅ Poids total du sandwich (calculé)
 
     def __str__(self):
         return f"{self.nom} ({self.taille}) - {self.poids_total}g"
 
+@receiver(m2m_changed, sender=Sandwich.produits.through)
+def update_sandwich_poids(sender, instance, **kwargs):
+    """ 🔹 Met à jour le poids total du sandwich quand les produits changent """
+    instance.poids_total = sum(produit.poids for produit in instance.produits.all())
+    instance.save()
 
+    
 class Commande(models.Model):
     """ Modèle représentant une commande d'un ou plusieurs sandwiches """
     
@@ -89,37 +88,14 @@ class Commande(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="en attente")  # Statut de la commande
     date_commande = models.DateTimeField(auto_now_add=True)  # Date de création de la commande
 
-    def save(self, *args, **kwargs):
-        """ 🔹 Calcule automatiquement le poids total de la commande avant de sauvegarder. """
-        if self.sandwich:
-            self.poids_total = self.sandwich.poids_total * self.quantite  # ✅ Poids total basé sur la quantité
-
-        super().save(*args, **kwargs)
-
-        """ 🔹 Mise à jour du stock des produits si la commande est terminée """
-        if self.status == "terminée":
-            for produit in self.sandwich.produits.all():
-                produit.quantite_stock -= self.quantite
-                produit.save()
-
     def __str__(self):
         return f"Commande {self.id} - {self.sandwich.nom} x {self.quantite} - {self.poids_total}g - {self.status}"
-
 
 @receiver(pre_save, sender=Commande)
 def update_commande_poids(sender, instance, **kwargs):
     """ 🔹 Met à jour automatiquement le poids total de la commande avant de sauvegarder """
     if instance.sandwich:
         instance.poids_total = instance.sandwich.poids_total * instance.quantite
-class ConditionsMeteo(models.Model):
-    """ Modèle représentant les conditions météo à un moment donné """
-    
-    date_heure = models.DateTimeField(auto_now_add=True)  # Date et heure avec seconde de l'enregistrement
-    temperature = models.FloatField(help_text="Température en degrés Celsius")  # Température en °C
-    humidite = models.FloatField(help_text="Humidité en pourcentage")  # Humidité en %
-
-    def __str__(self):
-        return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
 
 @receiver(pre_save, sender=Commande)
 def update_stock_on_terminer(sender, instance, **kwargs):
@@ -134,7 +110,19 @@ def update_stock_on_terminer(sender, instance, **kwargs):
                 else:
                     raise ValueError(f"Stock insuffisant pour {produit.nom} !")
 
+class ConditionsMeteo(models.Model):
+    """ Modèle représentant les conditions météo à un moment donné """
+    
+    date_heure = models.DateTimeField(auto_now_add=True)  # Date et heure avec seconde de l'enregistrement
+    temperature = models.FloatField(help_text="Température en degrés Celsius")  # Température en °C
+    humidite = models.FloatField(help_text="Humidité en pourcentage")  # Humidité en %
+
+    def __str__(self):
+        return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
+
 class Temperature(models.Model):
+    """ Modèle représentant la température enregistrée """
+    
     date_heure = models.DateTimeField(auto_now_add=True)
     temperature = models.FloatField(help_text="Température en degrés Celsius")
     humidite = models.FloatField(help_text="Humidité en pourcentage")
