@@ -7,5 +7,6 @@ __pycache__/
 .coverage
 server.log
 db.sqlite3db.sqlite3
+db.sqlite3
 *.log
 logs/
