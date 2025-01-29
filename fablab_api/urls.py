@@ -5,9 +5,11 @@ from commandes.views import (
     ProduitViewSet, 
     SandwichViewSet, 
     CommandeViewSet, 
-    stock_actuel, 
+    stock_actuel,
+   TemperatureViewSet,
     verifier_poids_commande  # 🔹 Ajout de l'import pour la vérification du poids
 )
+
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -16,6 +18,7 @@ router = DefaultRouter()
 router.register(r'produits', ProduitViewSet)
 router.register(r'sandwiches', SandwichViewSet)
 router.register(r'commandes', CommandeViewSet)
+router.register(r'temperature', TemperatureViewSet)  # Ajout de la route pour la température
 
 # Définition des URL du projet
 urlpatterns = [
