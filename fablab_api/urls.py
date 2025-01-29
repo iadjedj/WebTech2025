@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from commandes.views import ProduitViewSet, SandwichViewSet, CommandeViewSet, stock_actuel, TemperatureViewSet  # Ajout du ViewSet pour la température
+from commandes.views import ProduitViewSet, SandwichViewSet, CommandeViewSet, stock_actuel, TemperatureViewSet, ScanViewSet
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -11,6 +11,7 @@ router.register(r'produits', ProduitViewSet)
 router.register(r'sandwiches', SandwichViewSet)
 router.register(r'commandes', CommandeViewSet)
 router.register(r'temperature', TemperatureViewSet)  # Ajout de la route pour la température
+router.register(r'scans', ScanViewSet)  # Ajout de la route pour Scan
 
 # Définition des URL du projet
 urlpatterns = [

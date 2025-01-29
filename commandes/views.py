@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .models import Produit, Sandwich, Commande
-from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer
-from .models import Temperature
+from .models import Produit, Sandwich, Commande, Temperature, Scan
+from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer, ScanSerializer
+
+
 class ProduitViewSet(viewsets.ModelViewSet):
     """ API pour gérer les produits """
     queryset = Produit.objects.all()
@@ -81,3 +82,8 @@ from .serializers import TemperatureSerializer
 class TemperatureViewSet(viewsets.ModelViewSet):
     queryset = Temperature.objects.all()
     serializer_class = TemperatureSerializer
+
+
+class ScanViewSet(viewsets.ModelViewSet):
+    queryset = Scan.objects.all()
+    serializer_class = ScanSerializer
