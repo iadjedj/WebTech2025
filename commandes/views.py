@@ -8,8 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from .models import Produit, Sandwich, Commande
-from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer
-
+from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer
+from .models import Temperature
 class ProduitViewSet(viewsets.ModelViewSet):
     """ API pour gérer les produits """
     queryset = Produit.objects.all()
@@ -72,6 +72,18 @@ def update_stock():
         print("📡 WebSocket : mise à jour envoyée avec succès !")
     except Exception as e:
         print(f"❌ ERREUR WebSocket : {e}")
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Temperature
+from .serializers import TemperatureSerializer
+
+
+class TemperatureViewSet(viewsets.ModelViewSet):
+    queryset = Temperature.objects.all()
+    serializer_class = TemperatureSerializer
 
 @csrf_exempt
 def verifier_poids_commande(request):
