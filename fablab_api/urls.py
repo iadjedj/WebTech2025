@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
 from commandes.views import (
     ProduitViewSet, 
     SandwichViewSet, 
@@ -9,7 +10,9 @@ from commandes.views import (
     TemperatureViewSet,
     verifier_poids_commande,
     AddstockViewSet  # 🔹 Ajout de l'import pour la vérification du poids
+
 )
+
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,7 +24,6 @@ router.register(r'sandwiches', SandwichViewSet)
 router.register(r'commandes', CommandeViewSet)
 router.register(r'temperature', TemperatureViewSet)  # Ajout de la route pour la température
 router.register(r'addstock', AddstockViewSet)
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -85,6 +85,12 @@ class TemperatureViewSet(viewsets.ModelViewSet):
     queryset = Temperature.objects.all()
     serializer_class = TemperatureSerializer
 
+
+
+class ScanViewSet(viewsets.ModelViewSet):
+    queryset = Scan.objects.all()
+    serializer_class = ScanSerializer
+
 @csrf_exempt
 def verifier_poids_commande(request):
     """ Vérifie si le poids mesuré correspond à la commande et met à jour son statut """
@@ -123,7 +129,6 @@ def verifier_poids_commande(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
-
 
 from rest_framework import viewsets
 from .models import Addstock
