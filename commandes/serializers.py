@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Produit, Sandwich, Commande
-
+from .models import Temperature
 class ProduitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produit
@@ -14,8 +14,13 @@ class SandwichSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CommandeSerializer(serializers.ModelSerializer):
-    sandwich = SandwichSerializer(read_only=True)  # Affiche le détail du sandwich
+    sandwich = serializers.PrimaryKeyRelatedField(queryset=Sandwich.objects.all())
 
     class Meta:
         model = Commande
         fields = '__all__'
+
+class TemperatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Temperature
+        fields = ['date_heure', 'temperature', 'humidite']  # Utilise 'date_heure' au lieu de 'created_at'
