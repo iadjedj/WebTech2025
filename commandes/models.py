@@ -1,7 +1,7 @@
 from django.db import models
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-
+from django.utils import timezone
 class Produit(models.Model):
     """ Modèle représentant un produit individuel """
     
@@ -105,12 +105,12 @@ class Commande(models.Model):
     def __str__(self):
         return f"Commande {self.id} - {self.sandwich.nom} x {self.quantite} - {self.poids_total}g - {self.status}"
 
-class ConditionsMeteo(models.Model):
-    """ Modèle représentant les conditions météo à un moment donné """
-    
-    date_heure = models.DateTimeField(auto_now_add=True)  # Date et heure avec seconde de l'enregistrement
-    temperature = models.FloatField(help_text="Température en degrés Celsius")  # Température en °C
-    humidite = models.FloatField(help_text="Humidité en pourcentage")  # Humidité en %
+
+class Temperature(models.Model):
+    date_heure = models.DateTimeField(auto_now_add=True)
+    temperature = models.FloatField(help_text="Température en degrés Celsius")
+    humidite = models.FloatField(help_text="Humidité en pourcentage")
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
