@@ -6,7 +6,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import JsonRespons
+from django.http import JsonResponse
 from .models import Produit, Sandwich, Commande, Temperature, Scan
 from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer, ScanSerializer
 
