@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from .models import Produit, Sandwich, Commande, Temperature, Addstock
-from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer, AddstockSerializer
+from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer, TemperatureSerializer, AddstockSerializer
 
 class ProduitViewSet(viewsets.ModelViewSet):
     """ API pour gérer les produits """
@@ -73,19 +73,13 @@ def update_stock():
     except Exception as e:
         print(f"❌ ERREUR WebSocket : {e}")
 
-
-
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from .models import Temperature
 from .serializers import TemperatureSerializer
-
 
 class TemperatureViewSet(viewsets.ModelViewSet):
     queryset = Temperature.objects.all()
     serializer_class = TemperatureSerializer
-
-
 
 @csrf_exempt
 def verifier_poids_commande(request):
@@ -112,8 +106,8 @@ def verifier_poids_commande(request):
                 commande.status = "terminée"
                 message = "✅ Poids validé, commande terminée."
             else:
-                commande.status = "en attente"  # 🚀 Repasser la commande en attente en cas d'erreur
-                message = "❌ Erreur de poids la commande repasse en attente."
+                commande.status = "en attente"  
+                message = "❌ Erreur de poids, la commande repasse en attente."
 
             commande.save()
 
@@ -130,33 +124,42 @@ from rest_framework import viewsets
 from .models import Addstock
 from .serializers import AddstockSerializer
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from rest_framework import status
 
 class AddstockViewSet(viewsets.ModelViewSet):
     """ API pour gérer l'ajout de stock """
     queryset = Addstock.objects.all()
     serializer_class = AddstockSerializer
 
-    @action(detail=True, methods=['post'])
-    def ajouter_stock(self, request, pk=None):
-        """ Action personnalisée pour ajouter du stock et envoyer une mise à jour WebSocket """
-        addstock = self.get_object()  # Récupérer l'instance Addstock
+    @action(detail=False, methods=['post'])
+    def ajouter_stock(self, request):
+        """ Ajoute du stock à un produit existant ou crée un nouveau produit si nécessaire """
+        nom_produit = request.data.get("nom")
+        taille_produit = request.data.get("taille")
+        couleur_produit = request.data.get("couleur")
         quantite_a_ajouter = request.data.get("quantite_stock")
+        poids_produit = request.data.get("poids")
 
-        if quantite_a_ajouter is None:
-            return Response({"error": "Quantité manquante"}, status=status.HTTP_400_BAD_REQUEST)
+        if not nom_produit or not quantite_a_ajouter or not poids_produit:
+            return Response({"error": "Données manquantes"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            addstock.quantite_stock += quantite_a_ajouter  # Ajouter la quantité au stock existant
-            addstock.save()
+            produit, created = Produit.objects.get_or_create(
+                nom=nom_produit,
+                taille=taille_produit,
+                couleur=couleur_produit,
+                defaults={"poids": poids_produit, "quantite_stock": quantite_a_ajouter}
+            )
 
-            # Envoi d'une mise à jour via WebSocket
+            if not created:
+                produit.quantite_stock += int(quantite_a_ajouter)
+                produit.save()
+
+            # Envoyer une mise à jour WebSocket
             self.update_stock_via_websocket()
 
-            return Response({"message": f"Stock ajouté pour {addstock.nom}"}, status=status.HTTP_200_OK)
+            message = f"✅ {quantite_a_ajouter} unités de {nom_produit} ajoutées au stock."
+            return Response({"message": message}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

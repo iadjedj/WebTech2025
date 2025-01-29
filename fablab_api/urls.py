@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
 from commandes.views import (
     ProduitViewSet, 
     SandwichViewSet, 
@@ -9,10 +8,8 @@ from commandes.views import (
     stock_actuel,
     TemperatureViewSet,
     verifier_poids_commande,
-    AddstockViewSet  # 🔹 Ajout de l'import pour la vérification du poids
-
+    AddstockViewSet  
 )
-
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -22,15 +19,15 @@ router = DefaultRouter()
 router.register(r'produits', ProduitViewSet)
 router.register(r'sandwiches', SandwichViewSet)
 router.register(r'commandes', CommandeViewSet)
-router.register(r'temperature', TemperatureViewSet)  # Ajout de la route pour la température
-router.register(r'addstock', AddstockViewSet)
+router.register(r'temperature', TemperatureViewSet)  
+router.register(r'addstock', AddstockViewSet, basename="addstock")  # ✅ Correction basename
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),  # Inclut toutes les routes API
-    path('api/stock/', stock_actuel, name='stock'),  # Ajout de l'endpoint pour le stock
+    path('api/', include(router.urls)),  
+    path('api/stock/', stock_actuel, name='stock'),  
     path('api/verification-poids/', verifier_poids_commande, name="verification-poids"),
-
+    path('api/addstock/ajouter/', AddstockViewSet.as_view({'post': 'ajouter_stock'}), name='ajouter-stock'),  # ✅ Route POST
 ]
 
 # Ajoute cette ligne pour servir les fichiers statiques en mode DEBUG
