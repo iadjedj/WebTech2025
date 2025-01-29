@@ -7,9 +7,9 @@ from asgiref.sync import async_to_sync
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
-from .models import Produit, Sandwich, Commande
-from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer
-from .models import Temperature
+from .models import Produit, Sandwich, Commande, Temperature, Addstock
+from .serializers import ProduitSerializer, SandwichSerializer, CommandeSerializer,TemperatureSerializer, AddstockSerializer
+
 class ProduitViewSet(viewsets.ModelViewSet):
     """ API pour gérer les produits """
     queryset = Produit.objects.all()
@@ -123,3 +123,59 @@ def verifier_poids_commande(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+
+from rest_framework import viewsets
+from .models import Addstock
+from .serializers import AddstockSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from rest_framework import status
+
+class AddstockViewSet(viewsets.ModelViewSet):
+    """ API pour gérer l'ajout de stock """
+    queryset = Addstock.objects.all()
+    serializer_class = AddstockSerializer
+
+    @action(detail=True, methods=['post'])
+    def ajouter_stock(self, request, pk=None):
+        """ Action personnalisée pour ajouter du stock et envoyer une mise à jour WebSocket """
+        addstock = self.get_object()  # Récupérer l'instance Addstock
+        quantite_a_ajouter = request.data.get("quantite_stock")
+
+        if quantite_a_ajouter is None:
+            return Response({"error": "Quantité manquante"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            addstock.quantite_stock += quantite_a_ajouter  # Ajouter la quantité au stock existant
+            addstock.save()
+
+            # Envoi d'une mise à jour via WebSocket
+            self.update_stock_via_websocket()
+
+            return Response({"message": f"Stock ajouté pour {addstock.nom}"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def update_stock_via_websocket(self):
+        """ Envoie une mise à jour du stock via WebSockets """
+        channel_layer = get_channel_layer()
+
+        if channel_layer is None:
+            print("❌ ERREUR : `get_channel_layer()` est None. Vérifie que Django Channels est bien configuré.")
+            return
+
+        produits = Produit.objects.all()
+        stock_data = [{"nom": p.nom, "quantite": p.quantite_stock} for p in produits]
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                "stock_updates",
+                {"type": "send_stock_update", "data": stock_data}
+            )
+            print("📡 WebSocket : mise à jour envoyée avec succès !")
+        except Exception as e:
+            print(f"❌ ERREUR WebSocket : {e}")
