@@ -10,7 +10,6 @@ class ProduitTestCase(TestCase):
             poids=50.0,
             quantite_stock=10,
             couleur="Jaune",
-            temps_cuisson=5
         )
         
         # Vérifie que le produit a bien été enregistré
@@ -19,4 +18,3 @@ class ProduitTestCase(TestCase):
         self.assertEqual(produit.poids, 50.0)
         self.assertEqual(produit.quantite_stock, 10)
         self.assertEqual(produit.couleur, "Jaune")
-        self.assertEqual(produit.temps_cuisson, 5)
