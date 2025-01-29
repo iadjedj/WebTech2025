@@ -1,6 +1,8 @@
 from django.db import models
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.db.models.signals import m2m_changed, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 class Produit(models.Model):
     """ Modèle représentant un produit individuel """
@@ -56,20 +58,18 @@ class Sandwich(models.Model):
     nom = models.CharField(max_length=100, unique=True)
     taille = models.CharField(max_length=10, choices=TAILLE_CHOICES)
     produits = models.ManyToManyField(Produit)  # Relation ManyToMany
-    poids_total = models.FloatField(default=0)
-    temps_cuisson = models.PositiveIntegerField(default=0, help_text="Temps de cuisson total du sandwich (secondes)")
+    poids_total = models.FloatField(default=0)  # ✅ Poids total du sandwich
 
     def save(self, *args, **kwargs):
-        """ 🔹 Mise à jour automatique du poids total et du temps de cuisson """
+        """ 🔹 Mise à jour automatique du poids total """
         super().save(*args, **kwargs)  # 🔹 Sauvegarde l'objet pour générer l'ID
 
         if self.produits.exists():  # Vérifie si des produits sont associés
-            self.poids_total = sum(produit.poids for produit in self.produits.all())
-            self.temps_cuisson = max(produit.temps_cuisson for produit in self.produits.all())  # ⚠️ Prend le MAXIMUM du temps de cuisson
-            super().save(update_fields=["poids_total", "temps_cuisson"])  # 🔹 Sauvegarde finale après mise à jour
+            self.poids_total = sum(produit.poids for produit in self.produits.all())  # ✅ Somme des poids des produits
+            super().save(update_fields=["poids_total"])  # 🔹 Sauvegarde finale après mise à jour
 
     def __str__(self):
-        return f"{self.nom} ({self.taille}) - {self.poids_total}g - Cuisson: {self.temps_cuisson}s"
+        return f"{self.nom} ({self.taille}) - {self.poids_total}g"
 
 
 class Commande(models.Model):
@@ -85,14 +85,14 @@ class Commande(models.Model):
 
     sandwich = models.ForeignKey(Sandwich, on_delete=models.CASCADE)  # Lien vers un sandwich commandé
     quantite = models.PositiveIntegerField(default=1)  # Quantité commandée
-    poids_total = models.FloatField(default=0, help_text="Poids total de la commande en grammes")  # Poids total
+    poids_total = models.FloatField(default=0, help_text="Poids total de la commande en grammes")  # ✅ Poids total mis à jour
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="en attente")  # Statut de la commande
     date_commande = models.DateTimeField(auto_now_add=True)  # Date de création de la commande
 
     def save(self, *args, **kwargs):
         """ 🔹 Calcule automatiquement le poids total de la commande avant de sauvegarder. """
         if self.sandwich:
-            self.poids_total = self.sandwich.poids_total * self.quantite
+            self.poids_total = self.sandwich.poids_total * self.quantite  # ✅ Poids total basé sur la quantité
 
         super().save(*args, **kwargs)
 
@@ -105,6 +105,34 @@ class Commande(models.Model):
     def __str__(self):
         return f"Commande {self.id} - {self.sandwich.nom} x {self.quantite} - {self.poids_total}g - {self.status}"
 
+
+@receiver(pre_save, sender=Commande)
+def update_commande_poids(sender, instance, **kwargs):
+    """ 🔹 Met à jour automatiquement le poids total de la commande avant de sauvegarder """
+    if instance.sandwich:
+        instance.poids_total = instance.sandwich.poids_total * instance.quantite
+class ConditionsMeteo(models.Model):
+    """ Modèle représentant les conditions météo à un moment donné """
+    
+    date_heure = models.DateTimeField(auto_now_add=True)  # Date et heure avec seconde de l'enregistrement
+    temperature = models.FloatField(help_text="Température en degrés Celsius")  # Température en °C
+    humidite = models.FloatField(help_text="Humidité en pourcentage")  # Humidité en %
+
+    def __str__(self):
+        return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
+
+@receiver(pre_save, sender=Commande)
+def update_stock_on_terminer(sender, instance, **kwargs):
+    """ 🔹 Diminue le stock des produits lorsque la commande passe en statut 'terminée' """
+    if instance.pk:  # Vérifier si la commande existe déjà (éviter sur création)
+        ancienne_commande = Commande.objects.filter(pk=instance.pk).first()
+        if ancienne_commande and ancienne_commande.status != "terminée" and instance.status == "terminée":
+            for produit in instance.sandwich.produits.all():
+                if produit.quantite_stock >= instance.quantite:
+                    produit.quantite_stock -= instance.quantite
+                    produit.save()
+                else:
+                    raise ValueError(f"Stock insuffisant pour {produit.nom} !")
 
 class Temperature(models.Model):
     date_heure = models.DateTimeField(auto_now_add=True)
