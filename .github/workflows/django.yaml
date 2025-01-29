@@ -59,7 +59,7 @@ jobs:
         echo "✅ Redémarrage de Daphne..."
         RUNNER_TRACKING_ID="" && (nohup daphne -b 0.0.0.0 -p 8000 fablab_api.asgi:application >> log.txt &)
         sleep 5 # wait for server to start
-        ps aux | grep daphe | grep -v grep
+        ps aux | grep daphne | grep -v grep
   on-failure:
     runs-on: self-hosted
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
