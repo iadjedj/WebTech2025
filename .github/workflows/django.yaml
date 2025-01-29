@@ -1,9 +1,17 @@
-name: Django CI/CD
+name: Django DEPLOY
 
-on: push
+on:
+  workflow_run:
+    workflows: [Django Test]
+    types:
+      - completed
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
+  on-success:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v3
@@ -25,7 +33,7 @@ jobs:
         python manage.py makemigrations
         python manage.py migrate
 
-    - name: Create Superuser  # ✅ Corrigé l'indentation ici
+    - name: Create Superuser  # BUG: CLEARTEXT PASSWORD!
       run: |
         source .venv/bin/activate
         export DJANGO_SUPERUSER_USERNAME=admin
@@ -38,13 +46,8 @@ jobs:
         source .venv/bin/activate
         python manage.py collectstatic --noinput
 
-    - name: Run Tests
-      run: |
-        source .venv/bin/activate
-        python manage.py test commandes.tests
-
     - name: Restart Daphne Server
-      if: success() && github.ref == 'refs/heads/main'
+      if: success()
       run: |
         source .venv/bin/activate
         echo "🚀 Arrêt de Daphne en cours..."
@@ -53,3 +56,8 @@ jobs:
 
         echo "✅ Redémarrage de Daphne..."
         RUNNER_TRACKING_ID="" && (nohup daphne -b 0.0.0.0 -p 8000 fablab_api.asgi:application >> log.txt &)
+  on-failure:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'The triggering workflow failed'
