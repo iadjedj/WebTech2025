@@ -1,0 +1,6 @@
+[DEBUG] Asynchronous handler adapted for middleware whitenoise.middleware.WhiteNoiseMiddleware.
+2025-01-28 19:06:03,223 DEBUG    Asynchronous handler adapted for middleware whitenoise.middleware.WhiteNoiseMiddleware.
+2025-01-28 19:06:03,225 INFO     Starting server at tcp:port=8000:interface=0.0.0.0
+2025-01-28 19:06:03,226 INFO     HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+2025-01-28 19:06:03,226 INFO     Configuring endpoint tcp:port=8000:interface=0.0.0.0
+2025-01-28 19:06:03,227 INFO     Listening on TCP address 0.0.0.0:8000
