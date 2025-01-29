@@ -14,7 +14,7 @@ class SandwichSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CommandeSerializer(serializers.ModelSerializer):
-    sandwich = SandwichSerializer(read_only=True)  # Affiche le détail du sandwich
+    sandwich = serializers.PrimaryKeyRelatedField(queryset=Sandwich.objects.all())
 
     class Meta:
         model = Commande

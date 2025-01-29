@@ -99,7 +99,7 @@ def verifier_poids_commande(request):
                 message = "✅ Poids validé, commande terminée."
             else:
                 commande.status = "en attente"  # 🚀 Repasser la commande en attente en cas d'erreur
-                message = "❌ Erreur de poids, la commande repasse en attente."
+                message = "❌ Erreur de poids la commande repasse en attente."
 
             commande.save()
 
