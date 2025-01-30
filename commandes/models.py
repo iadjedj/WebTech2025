@@ -21,11 +21,11 @@ class Produit(models.Model):
         ("Bleu", "Bleu"),
     ]
 
-    nom = models.CharField(max_length=100)  # Nom du produit
-    taille = models.CharField(max_length=10, choices=TAILLE_CHOICES)  # Taille du produit
-    poids = models.FloatField(help_text="Poids en grammes")  # Poids unitaire du produit
-    quantite_stock = models.PositiveIntegerField(default=0)  # Quantité en stock
-    couleur = models.CharField(max_length=10, choices=COULEUR_CHOICES, default="Jaune")  # Couleur du produit
+    nom = models.CharField(max_length=100, unique=True)  # ✅ Nom unique
+    taille = models.CharField(max_length=10, choices=TAILLE_CHOICES)  
+    poids = models.FloatField(help_text="Poids en grammes")  
+    quantite_stock = models.PositiveIntegerField(default=0)  
+    couleur = models.CharField(max_length=10, choices=COULEUR_CHOICES, default="Jaune")  
 
     def __str__(self):
         return f"{self.nom} ({self.taille}, {self.couleur}) - {self.poids}g - Stock: {self.quantite_stock}"
@@ -37,7 +37,7 @@ class Produit(models.Model):
 
     def save(self, *args, **kwargs):
         """ 🔹 Sauvegarde et envoie une mise à jour du stock via WebSocket """
-        super().save(*args, **kwargs)  # 🔹 Sauvegarde l'objet normalement
+        super().save(*args, **kwargs)
 
         # 🔹 Envoi de la mise à jour WebSocket pour le stock
         channel_layer = get_channel_layer()
@@ -45,7 +45,6 @@ class Produit(models.Model):
             "stock_updates",
             {"type": "send_stock_update"}
         )
-
 
 class Sandwich(models.Model):
     """ Modèle représentant un sandwich composé de plusieurs produits """
@@ -58,8 +57,8 @@ class Sandwich(models.Model):
 
     nom = models.CharField(max_length=100, unique=True)
     taille = models.CharField(max_length=10, choices=TAILLE_CHOICES)
-    produits = models.ManyToManyField(Produit)  # Relation ManyToMany
-    poids_total = models.FloatField(default=0)  # ✅ Poids total du sandwich (calculé)
+    produits = models.ManyToManyField(Produit)  
+    poids_total = models.FloatField(default=0)  
 
     def __str__(self):
         return f"{self.nom} ({self.taille}) - {self.poids_total}g"
@@ -70,7 +69,6 @@ def update_sandwich_poids(sender, instance, **kwargs):
     instance.poids_total = sum(produit.poids for produit in instance.produits.all())
     instance.save()
 
-    
 class Commande(models.Model):
     """ Modèle représentant une commande d'un ou plusieurs sandwiches """
     
@@ -82,11 +80,11 @@ class Commande(models.Model):
         ("terminée", "Terminée"),
     ]
 
-    sandwich = models.ForeignKey(Sandwich, on_delete=models.CASCADE)  # Lien vers un sandwich commandé
-    quantite = models.PositiveIntegerField(default=1)  # Quantité commandée
-    poids_total = models.FloatField(default=0, help_text="Poids total de la commande en grammes")  # ✅ Poids total mis à jour
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="en attente")  # Statut de la commande
-    date_commande = models.DateTimeField(auto_now_add=True)  # Date de création de la commande
+    sandwich = models.ForeignKey(Sandwich, on_delete=models.CASCADE)  
+    quantite = models.PositiveIntegerField(default=1)  
+    poids_total = models.FloatField(default=0, help_text="Poids total de la commande en grammes")  
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="en attente")  
+    date_commande = models.DateTimeField(auto_now_add=True)  
 
     def __str__(self):
         return f"Commande {self.id} - {self.sandwich.nom} x {self.quantite} - {self.poids_total}g - {self.status}"
@@ -100,25 +98,22 @@ def update_commande_poids(sender, instance, **kwargs):
 @receiver(pre_save, sender=Commande)
 def update_stock_on_terminer(sender, instance, **kwargs):
     """ 🔹 Diminue le stock des produits lorsque la commande passe en statut 'terminée' """
-    if instance.pk:  # Vérifier si la commande existe déjà (éviter sur création)
+    if instance.pk:
         ancienne_commande = Commande.objects.filter(pk=instance.pk).first()
         if ancienne_commande and ancienne_commande.status != "terminée" and instance.status == "terminée":
             for produit in instance.sandwich.produits.all():
-                if produit.quantite_stock >= instance.quantite:
-                    produit.quantite_stock -= instance.quantite
-                    produit.save()
-                else:
-                    raise ValueError(f"Stock insuffisant pour {produit.nom} !")
+                produit.quantite_stock -= instance.quantite
+                produit.save()
 
-class ConditionsMeteo(models.Model):
-    """ Modèle représentant les conditions météo à un moment donné """
-    
-    date_heure = models.DateTimeField(auto_now_add=True)  # Date et heure avec seconde de l'enregistrement
-    temperature = models.FloatField(help_text="Température en degrés Celsius")  # Température en °C
-    humidite = models.FloatField(help_text="Humidité en pourcentage")  # Humidité en %
+class Addstock(models.Model):
+    nom = models.CharField(max_length=100)
+    taille = models.CharField(max_length=10)
+    quantite_stock = models.PositiveIntegerField(default=0)
+    date_heure = models.DateTimeField(default=timezone.now)  # ✅ Ajout du default ici
 
     def __str__(self):
-        return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
+        return f"Stock ajouté le {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Quantité: {self.quantite_stock}"
+
 
 class Temperature(models.Model):
     """ Modèle représentant la température enregistrée """
@@ -130,11 +125,3 @@ class Temperature(models.Model):
 
     def __str__(self):
         return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
-
-class Addstock(models.Model):
-    nom = models.CharField(max_length=100)
-    taille = models.CharField(max_length=10)
-    quantite_stock = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"Stock ajouté le {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Quantité: {self.quantite}"
