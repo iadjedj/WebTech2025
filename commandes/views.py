@@ -81,6 +81,13 @@ class TemperatureViewSet(viewsets.ModelViewSet):
     queryset = Temperature.objects.all()
     serializer_class = TemperatureSerializer
 
+    @action(detail=False, methods=['get'])
+    def last_50(self, request):
+        """ Get the last 50 temperature points """
+        last_50_temperatures = Temperature.objects.order_by('-date_heure')[:50]
+        serializer = self.get_serializer(last_50_temperatures, many=True)
+        return Response(serializer.data)
+
 @csrf_exempt
 def verifier_poids_commande(request):
     """ Vérifie si le poids mesuré correspond à la commande et met à jour son statut """
