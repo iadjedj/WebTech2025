@@ -25,7 +25,8 @@ router.register(r'addstock', AddstockViewSet, basename="addstock")  # ✅ Correc
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),  
-    path('api/stock/', stock_actuel, name='stock'),  
+    path('api/stock/', stock_actuel, name='stock'),
+    path('api/last_temps/', TemperatureViewSet.as_view({'get': 'last_50'}), name='last-temps'),
     path('api/verification-poids/', verifier_poids_commande, name="verification-poids"),
     path('api/addstock/ajouter/', AddstockViewSet.as_view({'post': 'ajouter_stock'}), name='ajouter-stock'),  # ✅ Route POST
 ]
