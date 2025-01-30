@@ -132,9 +132,23 @@ class Temperature(models.Model):
         return f"Conditions du {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Temp: {self.temperature}°C, Humidité: {self.humidite}%"
 
 class Addstock(models.Model):
+    """ Modèle pour ajouter du stock à un produit existant """
+    
     nom = models.CharField(max_length=100)
     taille = models.CharField(max_length=10)
     quantite_stock = models.PositiveIntegerField(default=0)
+    date_heure = models.DateTimeField(auto_now_add=True)  # Ajout du champ manquant
+
+    def save(self, *args, **kwargs):
+        """ 🔹 Met à jour le stock d'un produit existant si le nom et la taille correspondent """
+        try:
+            produit = Produit.objects.get(nom=self.nom, taille=self.taille)
+            produit.quantite_stock += self.quantite_stock  # Ajout de la quantité
+            produit.save()
+        except Produit.DoesNotExist:
+            raise ValueError(f"Produit '{self.nom}' ({self.taille}) non trouvé, impossible d'ajouter du stock.")
+
+        super().save(*args, **kwargs)  # Sauvegarde normale d'Addstock
 
     def __str__(self):
-        return f"Stock ajouté le {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')} - Quantité: {self.quantite}"
+        return f"Stock ajouté pour {self.nom} ({self.taille}) - Quantité: {self.quantite_stock} - {self.date_heure.strftime('%Y-%m-%d %H:%M:%S')}"
