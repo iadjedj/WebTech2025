@@ -7,10 +7,7 @@ class ProduitSerializer(serializers.ModelSerializer):
         fields = '__all__'  # Inclut tous les champs du modèle
 
 class SandwichSerializer(serializers.ModelSerializer):
-    produits = serializers.PrimaryKeyRelatedField(
-        queryset=Produit.objects.all(), 
-        many=True
-    )  # Permet de gérer l’ajout de produits via l’API
+    produits = ProduitSerializer(many=True, read_only=True)  # 🔥 Retourne la liste des produits sous forme d’objets
 
     class Meta:
         model = Sandwich
@@ -36,7 +33,7 @@ class SandwichSerializer(serializers.ModelSerializer):
         return instance
 
 class CommandeSerializer(serializers.ModelSerializer):
-    sandwich = serializers.PrimaryKeyRelatedField(queryset=Sandwich.objects.all())
+    sandwich = SandwichSerializer(read_only=True)  # 🔥 Retourne un objet Sandwich au lieu d’un ID
 
     class Meta:
         model = Commande
