@@ -7,7 +7,12 @@ class ProduitSerializer(serializers.ModelSerializer):
         fields = '__all__'  # Inclut tous les champs du modèle
 
 class SandwichSerializer(serializers.ModelSerializer):
-    produits = ProduitSerializer(many=True, read_only=True)  # 🔥 Retourne la liste des produits sous forme d’objets
+    produits = ProduitSerializer(many=True, read_only=True)  # 🔥 Retourne les produits sous forme d’objets
+    produits_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Produit.objects.all(),
+        many=True,
+        write_only=True  # 🔥 Permet d'ajouter des produits via leur ID en POST
+    )
 
     class Meta:
         model = Sandwich
@@ -15,14 +20,14 @@ class SandwichSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """ 🔹 Permet d'ajouter un sandwich avec ses produits """
-        produits_data = validated_data.pop('produits', [])  # Récupérer les produits sélectionnés
+        produits_data = validated_data.pop('produits_ids', [])  # Récupérer les produits sélectionnés (IDs)
         sandwich = Sandwich.objects.create(**validated_data)  # Créer le sandwich
-        sandwich.produits.set(produits_data)  # Ajouter les produits
+        sandwich.produits.set(produits_data)  # Associer les produits
         return sandwich
 
     def update(self, instance, validated_data):
         """ 🔹 Permet de modifier un sandwich avec ses produits """
-        produits_data = validated_data.pop('produits', None)  # Récupérer les produits sélectionnés
+        produits_data = validated_data.pop('produits_ids', None)  # Récupérer les produits sélectionnés (IDs)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)  # Mettre à jour les autres champs
 
@@ -33,11 +38,21 @@ class SandwichSerializer(serializers.ModelSerializer):
         return instance
 
 class CommandeSerializer(serializers.ModelSerializer):
-    sandwich = SandwichSerializer(read_only=True)  # 🔥 Retourne un objet Sandwich au lieu d’un ID
+    sandwich = SandwichSerializer(read_only=True)  # 🔥 Affiche l'objet sandwich en GET
+    sandwich_id = serializers.PrimaryKeyRelatedField(
+        queryset=Sandwich.objects.all(),
+        write_only=True  # 🔥 Permet d'envoyer un ID en POST
+    )
 
     class Meta:
         model = Commande
         fields = '__all__'
+
+    def create(self, validated_data):
+        """ 🔹 Permet de créer une commande avec un ID de sandwich """
+        sandwich = validated_data.pop('sandwich_id')  # Récupérer l'ID du sandwich
+        commande = Commande.objects.create(sandwich=sandwich, **validated_data)  # Associer le sandwich
+        return commande
 
 class TemperatureSerializer(serializers.ModelSerializer):
     class Meta:
